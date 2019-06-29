@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+	<title> Mental Rotation Task</title>
+	<div class="container" id="Box" style="border: solid; margin: auto; width: 90%;">
+	<center>	<h1>Mental Rotation Task</h1>
+		
+    </head>
+
+    <body style="font-size: 30;">
+	<div class="container">
+	<center><table >
+	<center>		<tr >
+			<td>
+			<img src="real/Primary/primary1.bmp" id="test0" style="border: solid;"><br><center><text class="text" id= "0" value="target" style="font-size: 20;"><b>Primary</b></text>
+			</td><td><img src="real/test/test1.1.bmp" id="test1" style="border: solid;"><br><center><input type="checkbox" class="checkbox" id="1" onclick="checkBoxing(this.id, this.checked)"></input>
+			</td><td><img src="real/test/test1.2.bmp" id="test2" style="border: solid;"><br><center><input type="checkbox" class="checkbox" id="2" onclick="checkBoxing(this.id, this.checked)"></input>
+			</td><td><img src="real/test/test1.3.bmp" id="test3" style="border: solid;"><br><center><input type="checkbox" class="checkbox" id="3" onclick="checkBoxing(this.id, this.checked)"></input>
+			</td><td><img src="real/test/test1.4.bmp" id="test4" style="border: solid;"><br><center><input type="checkbox" class="checkbox" id="4" onclick="checkBoxing(this.id, this.checked)"></input>
+			</td></table>
+		</div>
+		<div>
+			<br><center> Page <text id="pagenumber" value="a">1</text>/20<br><input class="next" id="next" type="button" value="Next" onclick="nextTrialIf()"></input>
+		</div></div>
+		<script>
+			
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+var answers = []		
+var checkboxes = []
+var training =  "real";
+var trial = 1;
+
+
+var onloadTimeStamp = new Date().getTime();
+
+var timeStamps = [onloadTimeStamp]
+
+console.log (onloadTimeStamp);
+
+function getPosition(el) {
+	var xPos = 0;
+	var yPos = 0;
+  
+	while (el) {
+		// for all other non-BODY elements
+		xPos += (el.offsetLeft - el.scrollLeft + el.clientLeft);
+		yPos += (el.offsetTop - el.scrollTop + el.clientTop);
+		el = el.offsetParent;
+	}
+	return {
+	x: xPos,
+	y: yPos,
+	};
+}
+
+function updatePositions(){
+	for (i=0;i<5;i++){
+		var el = document.getElementById("test" + i);
+		var w = el.width;
+		var h = el.height;
+		var posX = getPosition(el).x;
+		var posY = getPosition(el).y;
+		document.getElementById(i).style.left = (posX + (w/2)) - 10 + "px";
+		document.getElementById(i).style.top = posY + w*1.15 + "px";
+		if (i===0){
+			document.getElementById(i).style.left = (posX + (w/2)) - 30 + "px";
+		}
+	}
+}	
+function checkBoxing(a, b){
+	if (b === true){ 
+		checkboxes.push (a);
+		document.getElementById("test" + a).style.color = "blue";
+	}
+	if (b === false){
+		if (checkboxes[0]  === a){
+			checkboxes.splice(0, 1);
+			document.getElementById("test" + a).style.color = 'black';
+		}
+		if (checkboxes[1]  === a){
+			checkboxes.splice(1, 1);
+			document.getElementById("test" + a).style.color = 'black';
+		}
+	}
+	if(checkboxes.length > 2){
+		var c = checkboxes.splice(0, 1);
+		document.getElementById(c).checked = false
+		document.getElementById("test" + c).style.color = 'black'
+	}
+	//console.log (a, b, checkboxes);
+}
+
+function nextTrial(){
+	
+	var thisTimeStamp = new Date().getTime();
+	timeStamps.push (thisTimeStamp);
+	var totalTime =  timeStamps[trial] - timeStamps[trial-1];
+	console.log (timeStamps);
+	console.log (totalTime);
+	trial++
+	document.getElementById("pagenumber").innerHTML = trial;
+	answers.push (checkboxes);
+	document.getElementById("test0").src = training +  "/primary/primary" + trial + ".bmp"
+	for (i=1;i<5;i++){
+		next = "test" + String(i);
+		document.getElementById(next).src = training + "/test/test" + trial + "." + i +".bmp";
+		document.getElementById(i).checked = false;
+		checkboxes = [];
+		document.getElementById("test" + i).style.color = 'black';
+	}
+}	
+
+function nextTrialIf(){
+	if (checkboxes.length > 1){
+		
+		nextTrial();
+		
+	} else{
+		alert("You didn't check " + (2 - checkboxes.length) + " of the boxes")
+	}
+	if (trial === 20){
+		//!!!!!!!!!!!!!!!
+		//!!!!!!!!!!!!!!!
+		//!!!!!!!!!!!!!!!
+		//!!!!!!!!!!!!!!!
+		location.replace("./mrt_finish.html"); //GO TO NEXT PAGE
+		//STRINGIFY answers
+		//!!!!!!!!!!!!!!!
+		//!!!!!!!!!!!!!!!
+		//!!!!!!!!!!!!!!!
+		//!!!!!!!!!!!!!!!
+	}
+}
+setTimeout (updatePositions, 1);
+window.addEventListener("resize", updatePositions, false);
+		</script>
+	</body>

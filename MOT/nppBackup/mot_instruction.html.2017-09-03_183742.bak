@@ -1,0 +1,33 @@
+<DOCTYPE html>
+<html>
+<head>
+	<title>Instructions MRT</title>
+</head>			
+<body style="font-size: 18">
+<div id="Box" style="border: solid; margin: auto; width: 90%;">
+
+<center><h1>Instructions: Mental Rotation Task</h1>
+
+<b> This is a test of your ability to look at a drawing of a given object and find the same object within a set of dissimilar objects. 
+<br>The only difference between the original object and the chosen objects will be that they are presented at different angles. 
+<br>An illustration of this principle is given below where the same single object is given in five different positions. 
+<br>Look at each of them until you are satisfied that they are only presented at different angles from one another. 
+
+<br><br>Below are two drawings of new objects. 
+<br>They do not match the above five drawings. 
+<br>Please note that you may rotate these new objects, but they won't match the ones from above. 
+<br>Look at each of them until you are satisfied that they are different from the above.
+<br><br>
+
+<br><br><br>
+Now let’s do some sample problems. For each problem there is a primary object on the far left. You are to determine which two of four objects to the right are the same object given on the far left. In each problem always two of the four drawings are the same object as the one on the left. You are to put Xs in the boxes below the correct ones, and leave the incorrect ones blank. The first sample problem is done for you.
+</b><br><br><br><br><br>
+
+
+<button id="Next" >Start Training</button>
+</center>
+
+
+</div>
+</body>
+</html>

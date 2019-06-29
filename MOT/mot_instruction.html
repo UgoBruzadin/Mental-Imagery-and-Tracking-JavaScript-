@@ -1,0 +1,35 @@
+<DOCTYPE html>
+<html>
+<head>
+	<title>Instructions MOT</title>
+</head>			
+<body style="font-size: 18">
+<div id="Box" style="border: solid; margin: auto; width: 90%;">
+
+<center><h1>Instructions: Multi Object Tracking</h1>
+
+<b> This is a test of your ability to track many objects at once. 
+<br> The objective is to track the objects that blink.
+<br> Circles will blink three (3) times, and then start moving in random directions.
+<br> Once all objects stop moving, you have 10 seconds to click on the objects that blinked.
+<br><br> If after ten seconds you haven't clicked in any objects, another trial will start.
+<br> If you miss three trials, this experiment will be terminated. 
+
+<br><br>First, there will be a training session. 
+<br> During the training session, you'll practice tracking two circles. 
+<br> After three training trials, you will be redirected to the task.
+<br> Good luck! 
+<br>
+<br><input class="next" id="next" type="button" value="Start Training" onclick="nextTrialIf()"></input>
+</center>
+<script>
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+function nextTrialIf(){
+		location.replace("./mot_training.html");
+}
+		</script>
+</div>
+</body>
+</html>

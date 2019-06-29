@@ -1,0 +1,179 @@
+	    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    </head>
+
+    <body>
+  
+	<canvas id="canvas" Style="border: #fff solid" align="right"></canvas>
+	
+<script>
+//this code was made by Ugo Bruzadin Nunes at Southern Illinois University - Carbondale, March 2017
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+document.body.style.background = 'black';
+document.body.style.margin = 0;
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+if ( !window.requestAnimationFrame ) {					 	// correct requestAnimationFrame for all browsers
+	window.requestAnimationFrame = ( function() {
+		return window.webkitRequestAnimationFrame ||
+		window.mozRequestAnimationFrame ||
+		window.oRequestAnimationFrame ||
+		window.msRequestAnimationFrame ||
+		function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
+			window.setTimeout( callback, 1000 / 60 );
+		};
+	} )();
+}
+
+var w = window.innerWidth                     				 // correct widht and height for all browsers
+		|| document.documentElement.clientWidth
+		|| document.body.clientWidth;
+var h = window.innerHeight
+		|| document.documentElement.clientHeight
+		|| document.body.clientHeight;
+
+canvas.width = w*.99;
+canvas.height = h*.99;
+
+var radius = canvas.height*0.04;
+var speed = canvas.width*0.002;
+var startXPos = canvas.width*.2;
+var finishXPos = canvas.width*.8;
+
+function randomBetween(min, max) { 							// this function calculates random numbers between two given numbers
+	return min + Math.random() * (max - min);
+}//end randomBetween
+	
+training();
+
+function training(){
+
+	var drawingID = true;
+	var movingID = true;
+	var raf;
+
+	var color = 'red';
+	var balls = [];
+	var p = startXPos;
+	var e = finishXPos;
+	
+	balls.push (new ball());
+
+	function title(){
+		ctx.font = '48px serif';
+		ctx.fillStyle = 'white';
+		ctx.textAlign = "center";
+		ctx.fillText('Track the circle with the mouse', (canvas.width/2), (0.25*canvas.height));
+	}
+	
+	function getMousePos(canvas, evt) {
+		var rect = canvas.getBoundingClientRect();
+		return {
+			x: evt.clientX - rect.left,
+			y: evt.clientY - rect.top
+		};
+	}
+	  
+	function ball(){
+	
+		var xie = 0;
+		var yie = 0;
+	
+		this.xPos = startXPos; 	
+		this.yPos = canvas.height/2;
+		this.vxPos = speed; 									// amount of x gained per pixels/sec (based on speed)
+		this.color = 'red';
+		this.position = false;
+		
+		this.thickness = 2;													// determines the thickness of the ball
+		this.radius = radius; 									// refers to the radius of the balls											// refers to the center color of the ball	
+	
+		this.draw = function(ctx) {											// fuctions that draws the balls
+			
+			ctx.beginPath();
+			ctx.arc(this.xPos, this.yPos, this.radius, 0, Math.PI * 2, true);
+			ctx.closePath();
+			ctx.fillStyle = this.color;
+			ctx.fill();
+			ctx.lineWidth = this.thickness;
+			ctx.strokeStyle = 'white';
+			ctx.stroke();			
+		}//end draw
+		
+		addEventListener('mousemove', function(evt){
+			var mousePos = getMousePos(canvas, evt);
+			xie = mousePos.x;
+			yie = mousePos.y;
+		}, false); //end event
+		
+		this.update = function(){     						// this function is the one that updates it balls' positions according to their speed.
+			
+			this.xPos += this.vxPos;
+			p += this.vxPos;
+			var xDie = xie - balls[0].xPos;
+			var yDie = yie - balls[0].yPos;
+			var deltaDie = Math.sqrt(Math.pow(yDie, 2) + Math.pow(xDie, 2));
+			if (deltaDie < radius){
+				balls[0].color = 'green';
+				balls[0].thickness = 3;
+			} 
+			if (deltaDie >= radius) {
+				balls[0].color = 'red';
+				balls[0].thickness = 2;
+			}
+			if(balls[0].xPos > e){
+				this.vxPos = 0;
+				setTimeout(displayScore, 100);
+			}
+			
+		}//end of update
+	}// end ball
+
+	function animate(){                                        //this function clears canvas, draws the balls, updates the animation and stops everything once it needs to stop.
+		if(drawingID === true){
+			ctx.clearRect(0,0, canvas.width, canvas.height);
+			balls[0].draw(ctx);
+			title();
+			raf = window.requestAnimationFrame(animate);			//starts the animation
+		}	
+		if(movingID === true){
+			balls[0].update();
+		}
+		
+	}//end animate
+	
+	function start(){
+		raf = window.requestAnimationFrame(animate);
+	}
+	function stop(){
+		movingID = false;
+		drawingID = false;
+		raf = 0;
+	}
+	start();
+}	
+
+function displayScoreTimed(){							// timer to display score (after clicking ended)
+	setTimeout(displayScore, 100);
+}	
+
+function startReal(){
+	location.replace("./mtt_middle.html") 		//  IS THIS RIGHT? HELP
+}
+function displayScore(){								// function that draws the text that displays the score at the end of the trial
+	
+	// THIS <IF> IS THE END OF THE TASK!!! 
+	
+	ctx.font = '36px serif';
+	ctx.fillStyle = 'red';
+	ctx.clearRect(0,0, canvas.width, canvas.height)
+	ctx.fillText('Saving data and loading next task, please wait.' , canvas.width/2, canvas.height/2);
+	startReal()
+
+}
+
+	</script>
+	</body>

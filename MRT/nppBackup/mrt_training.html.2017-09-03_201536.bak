@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+	<title> Mental Rotation Task</title>
+	<div class="container" id="Box" style="border: solid; margin: auto; width: 90%;">
+	<center>	<h1>Mental Rotation Task</h1>
+		<h2 id= "subtitle">TRAINING</h2>
+	<p style="font-size: 120%;"> Do the rest of the sample problems yourself. <br>
+	Which two drawings of the four on the right show the same object as the one on the left? <br>
+	<b>There are always two and only two correct answers for each problem. </b><br>
+	The correct answers will highlight in <b style="color: #32cd32;">green</b>, the wrong ones in <b style="color: red;">red</b>.<br>
+	Click under the two correct drawings. When you are done, click "next"</p>
+    </head>
+
+    <body style="font-size: 30;">
+	<div class="container">
+	<center><table >
+	<center>		<tr >
+			<td>
+			<img src="training/Primary/primary1.bmp" id="test0" style="border: solid;"><br><center><text class="text" id= "0" value="target" style="font-size: 20;"><b>Primary</b></text>
+			</td>
+			<td><img src="training/test/test1.1.bmp" id="test1" style="border: solid;"><br><center><input type="checkbox" class="checkbox" id="1" onclick="checkBoxing(this.id, this.checked)"></input>
+			</td>
+			<td>
+			<img src="training/test/test1.2.bmp" id="test2" style="border: solid;"><br><center><input type="checkbox" class="checkbox" id="2" onclick="checkBoxing(this.id, this.checked)"></input>
+			</td>
+			<td><img src="training/test/test1.3.bmp" id="test3" style="border: solid;"><br><center><input type="checkbox" class="checkbox" id="3" onclick="checkBoxing(this.id, this.checked)"></input>
+			</td>
+			<td><img src="training/test/test1.4.bmp" id="test4" style="border: solid;"><br><center><input type="checkbox" class="checkbox" id="4" onclick="checkBoxing(this.id, this.checked)"></input>
+			</td></table>
+		</div>
+		<div>
+			<br><center><input class="next" id="next" type="button" value="Next" onclick="nextTrialIf()"></input>
+		</div></div>
+		<script>
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+	
+var checkboxes = []
+var training =  "training";
+var trial = 1;
+
+function getPosition(el) {
+	var xPos = 0;
+	var yPos = 0;
+  
+	while (el) {
+		// for all other non-BODY elements
+		xPos += (el.offsetLeft - el.scrollLeft + el.clientLeft);
+		yPos += (el.offsetTop - el.scrollTop + el.clientTop);
+		el = el.offsetParent;
+	}
+	return {
+	x: xPos,
+	y: yPos,
+	};
+}
+
+function updatePositions(){
+	for (i=0;i<5;i++){
+		var el = document.getElementById("test" + i);
+		var w = el.width;
+		var h = el.height;
+		var posX = getPosition(el).x;
+		var posY = getPosition(el).y;
+		document.getElementById(i).style.left = (posX + (w/2)) - 10 + "px";
+		document.getElementById(i).style.top = posY + w*1.15 + "px";
+		if (i===0){
+			document.getElementById(i).style.left = (posX + (w/2)) - 30 + "px";
+		}
+	}
+}	
+
+function checkBoxing(a, b){
+	var answers = [1,3,1,3,2,3]
+	if (b === true){ 
+		checkboxes.push (a);
+		if (a == answers[trial] || a == answers[trial+1]){
+			document.getElementById("test" + a).style.color = "#32cd32";
+			console.log (a);
+		} else {
+			document.getElementById("test" + a).style.color = "red";
+			console.log (a);
+		}
+	}	
+	if (b === false){
+		if (checkboxes[0]  === a){
+			checkboxes.splice(0, 1);
+			document.getElementById("test" + a).style.color = 'black';
+		}
+		if (checkboxes[1]  === a){
+			checkboxes.splice(1, 1);
+			document.getElementById("test" + a).style.color = 'black';
+		}
+	}
+	if(checkboxes.length > 2){
+		var c = checkboxes.splice(0, 1);
+		document.getElementById(c).checked = false
+		document.getElementById("test" + c).style.color = 'black'
+	}
+	//console.log (a, b, checkboxes);
+}
+
+function nextTrial(){
+	if (trial === 3){
+		document.getElementById("next").value = "Finish training"
+	}	
+	trial++
+	//answers.push (checkboxes);
+	document.getElementById("test0").src = training + "/primary/primary" + trial + ".bmp"
+	for (i=1;i<5;i++){
+		next = "test" + String(i);
+		document.getElementById(next).src = training + "/test/test" + trial + "." + i +".bmp";
+		document.getElementById(i).checked = false;
+		checkboxes = [];
+		document.getElementById("test" + i).style.color = 'black';
+	}
+}	
+
+function nextTrialIf(){
+	if (checkboxes.length > 1){
+		nextTrial();
+	} else{
+		alert("You didn't check " + (2 - checkboxes.length) + " of the boxes")
+	}
+	if (trial === 4){
+		location.replace("./mrtmiddle.html");
+	}
+}
+setTimeout (updatePositions, 1);
+window.addEventListener("resize", updatePositions, false);
+		</script>
+	</body>

@@ -1,0 +1,39 @@
+<DOCTYPE html>
+<html>
+<head>
+	<title>Instructions MTT</title>
+</head>			
+<body style="font-size: 18">
+<div id="Box" style="border: solid; margin: auto; width: 90%;">
+
+<center><h1>Instructions: Manual Tracking Task</h1>
+
+<b> This is a test of your ability to track a circle with your mouse. 
+<br> Four (4) targets will show on the screen for 3 seconds.
+<br> When targets are gone, one circle will show on the right OR on the left of the screen.
+<br> The circle will zig-zag, bouncing from where the 4 targets were.
+<br> Your objective is to track the movement of the circle with the mouse as best as you can.
+<br><br> On half the trials, a gray rectangle will cover the center of the screen.
+<br> 
+<br> If you don't move your mouse too much, the trial will be considered a "miss".
+<br> If you miss three trials, this experiment will be terminated. 
+
+<br><br>First, there will be a training session. Get used to the size of the circle.
+<br> Your objective is to keep the mouse as close to the center of the circle as possible.
+<br>
+<br> When you're ready to start, click "Start Training"
+<br><input class="next" id="next" type="button" value="Start Training" onclick="nextTrialIf()"></input>
+</center>
+
+<script>
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+function nextTrialIf(){
+		location.replace("./mtt_training.html");
+}
+
+</script>
+</div>
+</body>
+</html>

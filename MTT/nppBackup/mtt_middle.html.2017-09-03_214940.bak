@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+	<title> Manual Tracking Task</title>
+	<div class="container" id="Box" style="border: solid; margin: auto; width: 90%;">
+	<center>	<h1>Manual Tracking Task</h1>
+		<h2 id= "subtitle">Good job!</h2>
+	<p style="font-size: 120%;"> Training is over. Are you ready to start the task? <br>
+	When you are ready, click "next"</p>
+    </head>
+
+		<div>
+			<br><center><input class="next" id="next" type="button" value="Next" onclick="nextTrialIf()"></input>
+		</div></div>
+		<script>
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+function nextTrialIf(){
+		location.replace("./mttreal.html");
+}
+		</script>
+	</body>

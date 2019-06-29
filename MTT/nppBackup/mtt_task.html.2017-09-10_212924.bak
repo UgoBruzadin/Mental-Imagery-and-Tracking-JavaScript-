@@ -1,0 +1,525 @@
+	    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    </head>
+
+    <body>
+  
+	<canvas id="canvas" Style="border: #fff solid" align="right"></canvas>
+	
+<script>
+//this code was made by Ugo Bruzadin Nunes at Southern Illinois University - Carbondale, March 2017
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+document.body.style.background = 'black';
+document.body.style.margin = 0;
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+if ( !window.requestAnimationFrame ) {					 	// correct requestAnimationFrame for all browsers
+	window.requestAnimationFrame = ( function() {
+		return window.webkitRequestAnimationFrame ||
+		window.mozRequestAnimationFrame ||
+		window.oRequestAnimationFrame ||
+		window.msRequestAnimationFrame ||
+		function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
+			window.setTimeout( callback, 1000 / 60 );
+		};	
+	} )();
+}
+
+var w = window.innerWidth                     				 // correct widht and height for all browsers
+		|| document.documentElement.clientWidth
+		|| document.body.clientWidth;
+var h = window.innerHeight
+		|| document.documentElement.clientHeight
+		|| document.body.clientHeight;
+
+canvas.width = w*.99;										// defines the canvas as 99% of the window inner width
+canvas.height = h*.99;										// ^^ for height
+		
+var radius = canvas.height*0.04;							// defines the radius as 0.04% of the canvas height
+var speed = canvas.height*0.0045;								// defines the speed as 0.02% of the canvas width
+
+var clickToStartID = 0;										// If 1, game starts
+var timesPlayed = 0;										// numbers of time of trials have played
+var timesToPlay = 4;										// number of trials to happen
+
+var trials = [];											// array containing all functions of trials
+var occlusions = [];										// array containing 0s and 1s that define if the trial will or not have an occluder.
+var sides = [];												// array that has 0s or 1s that define if the trial will start in the right or left
+var stopID = false;											// when true, game stops.
+
+var scoresPerTrial = [];									// array containing all scores and timestamps of each trial.
+
+function toDegrees (angle) {								// function returns radians in angles
+	return angle * (180 / Math.PI);
+}
+function toRadians (angle) {								// function return angles in radians
+	return angle * (Math.PI / 180);
+}
+	
+function getRandomInt(min, max) {							// function gets random integer bewteen two numbers, including both min and max.
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function randomBetween(min, max) { 							// this function calculates random non-integers numbers between two given numbers
+	return min + Math.random() * (max - min);
+}//end randomBetween
+function negOrPos(){										// function gives randomly either -1 and 1. Usefull for coin flips.
+	var coinFlip = getRandomInt(1, 4);
+	var coin;
+	if (coinFlip > 2){
+		coin = 1; 
+	} else{
+		coin = -1;
+	}
+	return coin;
+}
+for (i=0; i < Math.floor(timesToPlay/2); i++){  			// makes the first half of the trials left and occluded (it's shuffled later)
+	sides.push(1); 
+	occlusions.push(1);
+}
+
+for (i= Math.floor (timesToPlay/2); i < timesToPlay; i++){  // makes the second half of the trials right and not occluded (it's shuffled later)
+	sides.push(-1); 
+	occlusions.push(-1);
+}
+
+var occlusions = shuffle(occlusions);						// shuffle trials occluders
+
+for (i=0;i<2;i){											// function make sure the first trial is not-occluded
+	if (occlusions[0] === 1){
+		occlusions = shuffle(occlusions);
+	} else {
+		i++
+	}
+} 
+	
+var sides = shuffle(sides);									//shuffle sides in which the ball starts
+
+function shuffle(array) {											// this MAGICAL function shuffles variables inside an array; returns the array shuffled
+	var currentIndex = array.length, temporaryValue, randomIndex;
+	while (0 !== currentIndex) {									// While there remain elements to shuffle...
+		randomIndex = Math.floor(Math.random() * currentIndex);		// Pick a remaining element...
+		currentIndex -= 1;
+		temporaryValue = array[currentIndex];  						// And swap it with the current element.
+		array[currentIndex] = array[randomIndex];
+		array[randomIndex] = temporaryValue;
+	}
+  return array;
+}// I need to study how this funcitno works later ;D
+
+function trial(number, occlusion, side){						// main fuction that contains and creates all trials (number = trial number; occlusion = is trial occluded (-1 or 1); side = which side trial start (1- or 1))
+
+	var raf;													// Request Animation Frame - this receives request animation frame, and when it does, animation starts!
+
+	var color = 'green';										// color of the ball is green
+	var balls = [];												// array containing the balls (in this case, only one)
+	var bullsEyes = []											// array containing bulls' eyes (in this case, always 4)
+	
+	var xPos = [];												// array containing anchors' X postision
+	var yPos = [];												// array containing anchors' Y postision
+	
+	var angles = []; 											// array containing anchors' angles
+	var speedsX = [];											// array containing the correct X speed for each angle
+	var speedsY = [];											// array containing the correct Y speed for each angle
+	var moveCounter = 0;
+	
+	var top = canvas.height*.8									// defines the top margin of the game for 80%
+	var bottom = canvas.height*.2								// defines the top margin of the game for 20%
+	
+	var firstQuart = radius + 1;								// defines the X position of the 1st quart of the game  (left) - all used for the anchors and angles
+	var secondQuart = canvas.width*.25;							// defines the X position of the 2nd quart of the game  (left)
+	var thirdQuart = canvas.width*.5; 							// defines the X position of the 3rd quart of the game  (left)	
+	var fourthQuart = canvas.width*.75;							// defines the X position of the 4th quart of the game  (left)
+	var fifthQuart = canvas.width;								// defines the X position of the 5th quart of the game  (left)
+
+	var mouseLastPosX;											// variable that contains the last X position of the mouse
+	var mouseLastPosY;											// variable that contains the last Y position of the mouse
+	
+	var xPosArray = [];											// array of X positions for the drawing of the mousetracks
+	var yPosArray = [];											// array of Y positions for the drawing of the mousetracks
+	
+	var error = [];				//!!!IMPORTANT!!!//				// array containing all data - the error difference between the mouse and the ball's center.			
+	
+	var defaultDistance = canvas.width/3;						// defines the total distance bewteen anchors as always 1/3 of the canvas
+	
+	var drawingID;												// this ID starts the WHOLE trial drawing.
+	var occlusionID = occlusion;								// this ID gets (occlusion) and is used to draw the rectangle, if it's > 0
+	var eyesID = true;											// this ID is true and shows the anchors, when false anchors go away.
+	var linesID = false;										// this iD draws the ball tracks when true
+	var ballsID = false;										// this ID draws the ball when true
+	var movingID = false;										// this ID moves the ball when true
+	
+	var screenOff = [];											// this array contain all the times that subjects exited full screen
+	var screenOffTimeStamp;										// this is the timestamp when the screen was off
+	
+	var today = new Date();										// gets date
+	var startTimestamp = today.getTime();						// gets timestamp when the game started
+	
+	positionsGenerator();										// generates positions of the anchors
+	
+	setInterval (getPosition, 50);								// gets mouse positions every 50 miliseconds 					
+		
+	function getMousePos(canvas, evt) {							// a function that gives the exact position of the mouse. should check if works, probably won't work veyr well for all browsers.
+		var rect = canvas.getBoundingClientRect();
+		return {
+			x: evt.clientX - rect.left,
+			y: evt.clientY - rect.top
+		};
+	}
+	
+	
+	function checkScreen(){
+		var wh = window.innerHeight;
+		var ww = window.innerWidth;
+		if (screen.width != ww || screen.height != wh){
+			var today = new Date();
+			screenOffTimeStamp = today.getTime();
+			screenOff.push (screenOffTimeStamp);
+		}
+	}
+	
+	setInterval (checkScreen, 1000);
+	
+	function getPosition(){
+		if (balls[0].xPos > secondQuart && balls[0].xPos < fourthQuart){
+			var xDif = mouseLastPosX - balls[0].xPos;
+			var yDif = mouseLastPosY - balls[0].yPos;
+			var deltaDif = Math.sqrt(Math.pow(yDif, 2) + Math.pow(xDif, 2));
+			error.push (deltaDif);
+			//console.log (deltaDif);
+		}
+	}
+	
+	function setPosition(e) {
+		var rect = canvas.getBoundingClientRect();
+		xPosArray.push (e.clientX - rect.left);
+		yPosArray.push (e.clientY - rect.top);
+		mouseLastPosX = (e.clientX - rect.left);
+		mouseLastPosY = (e.clientY - rect.top);	
+	}
+	
+	function drawLines(){
+		ctx.beginPath();
+		
+		ctx.lineWidth = 2;
+		ctx.moveTo(xPos[0],yPos[0]);
+		ctx.lineTo(xPos[1],yPos[1]);
+		ctx.lineTo(xPos[2],yPos[2]);
+		ctx.lineTo(xPos[3],yPos[3]);
+		ctx.strokeStyle="white";
+		ctx.stroke();		
+		
+		ctx.beginPath();
+		ctx.fillStyleStyle= 'red';
+		ctx.fill();
+		ctx.beginPath();
+		
+	}
+	
+	function drawMouse() {
+		for (i = 0; i < xPosArray.length; i++){
+			ctx.beginPath(); // begin
+
+			ctx.lineWidth = 1;
+			//ctx.lineCap = 'round';
+			ctx.strokeStyle = 'red';
+
+			ctx.moveTo(xPosArray[i], yPosArray[i]); // from
+			ctx.lineTo(xPosArray[i+1], yPosArray[i+1]); // to
+			ctx.stroke();
+			 // draw it!
+		}
+	}
+	
+	function drawOcclusion(){
+		if (occlusionID > 0) {
+			ctx.moveTo(secondQuart,0);
+			ctx.lineTo(fourthQuart,0);
+			ctx.lineTo(fourthQuart,canvas.height);
+			ctx.lineTo(secondQuart,canvas.height);
+			ctx.closePath();
+			ctx.strokeStyle="white";
+			ctx.fillStyle = 'gray';
+			ctx.fill();
+		}	
+	}	
+	
+	function positionsGenerator(){
+		function nextPos(eye){
+			if (eye === 0) {
+				xPos[eye] = randomBetween(firstQuart, secondQuart);
+				yPos[eye] = randomBetween(top, bottom);
+			} else {		
+				var nextAngle = randomBetween(15, 45);
+				var direction = negOrPos();
+				
+				var xAdd = Math.cos(toRadians(nextAngle))
+				var yAdd = (direction*Math.sin(toRadians(nextAngle)));
+				
+				xPos[eye] = xPos[eye-1] + xAdd * defaultDistance;
+				if (yPos[eye-1] + yAdd  > top || yPos[eye-1] + yAdd + radius + 1 < bottom){
+					yPos[eye] = yPos[eye-1] - yAdd * defaultDistance;
+					direction *= -1;
+				} else {
+					yPos[eye] = yPos[eye-1] + yAdd * defaultDistance;
+				} 
+			}
+			angles[eye] = nextAngle;
+			speedsX[eye] = xAdd;
+			speedsY[eye] = yAdd;
+		}
+		for (i = 0; i < 4; i){
+			nextPos(i);
+			if (xPos[i] + radius + 1 > canvas.width || yPos[i] > top || yPos[i] < bottom){
+				i = 0;
+			} else {
+				i++;
+			}
+		}
+	}
+	
+	function bullsEye(b){
+	
+		this.xPos = xPos[b]; 	
+		this.yPos = yPos[b];
+		this.red = 'red';								// refers to the center color of the ball	
+		this.yellow = 'yellow';
+		this.thickness = 2;													// determines the thickness of the ball
+		this.draw = function(ctx) {											// fuctions that draws the balls	
+			ctx.beginPath(); 
+			ctx.arc(this.xPos, this.yPos, canvas.height*0.04, 0, Math.PI * 2, true);
+			ctx.closePath();
+			ctx.fillStyle = 'red';
+			ctx.fill();
+			ctx.beginPath();
+			ctx.arc(this.xPos, this.yPos, canvas.height*0.03, 0, Math.PI * 2, true);
+			ctx.closePath();
+			ctx.fillStyle = 'yellow';
+			ctx.fill();
+			ctx.beginPath(); 
+			ctx.arc(this.xPos, this.yPos, canvas.height*0.02, 0, Math.PI * 2, true);
+			ctx.closePath();
+			ctx.fillStyle = 'red';
+			ctx.fill();
+			ctx.beginPath(); 
+			ctx.arc(this.xPos, this.yPos, canvas.height*0.01, 0, Math.PI * 2, true);
+			ctx.closePath();
+			ctx.fillStyle = 'yellow';
+			ctx.fill();	
+			ctx.beginPath();   // why the hell this solve the color of the center of the ball? I don't know, but it works.
+		}//end draw
+	}
+	
+	function ball(number, occlusionID, sideID){
+		
+		if (sideID > 0){
+			var moveID = 0;
+			this.vxPos = speedsX[moveID+1]*speed; 									// amount of x gained per pixels/sec (based on speed)
+			this.vyPos = speedsY[moveID+1]*speed;
+		}
+		if (sideID < 0) {
+			var moveID = 3;
+			this.vxPos = speedsX[moveID]*speed; 									// amount of x gained per pixels/sec (based on speed)
+			this.vyPos = speedsY[moveID]*speed;
+		}
+		
+		this.xPos = xPos[moveID]; 	
+		this.yPos = yPos[moveID];
+		this.color = 'green';
+		
+		this.thickness = 1;													// determines the thickness of the ball
+		this.radius = radius; 									// refers to the radius of the balls											// refers to the center color of the ball	
+	
+		this.draw = function(ctx) {											// fuctions that draws the balls
+			ctx.beginPath();
+			ctx.arc(this.xPos, this.yPos, this.radius, 0, Math.PI * 2, true);
+			ctx.closePath();
+			ctx.fillStyle = this.color;
+			ctx.fill();
+			ctx.lineWidth = this.thickness;
+			ctx.strokeStyle = 'white';
+			ctx.stroke();
+			ctx.beginPath();
+				
+		}//end draw
+		
+		this.update = function(){     						// this function is the one that updates it balls' positions according to their speed.
+			
+			if (sideID > 0){
+				this.xPos += this.vxPos;
+				this.yPos += this.vyPos;
+				if (this.xPos + this.vxPos > xPos[moveID+1]){
+					moveID += 1;
+					moveCounter++;
+					this.vxPos = speedsX[moveID+1]*speed
+					this.vyPos = speedsY[moveID+1]*speed
+				}
+			}
+			if (sideID < 0){	
+				this.xPos -= this.vxPos;
+				this.yPos -= this.vyPos;
+				if (this.xPos + this.vxPos < xPos[moveID-1]){
+					moveID -= 1;
+					moveCounter++;
+					this.vxPos = speedsX[moveID]*speed
+					this.vyPos = speedsY[moveID]*speed
+				}
+			}			
+		}//end of update
+	}// end ball	
+	
+	//TIMERS, starts and ends
+	
+	balls.push (new ball(number, occlusion, side));
+	
+	for(b=0;b<4;b++){
+		bullsEyes.push(new bullsEye(b));
+	}
+	
+	function eyesOFF(){
+		ctx.clearRect(0,0, canvas.width, canvas.height);
+		eyesID = false;		
+	}
+	function ballON(){
+		ballsID = true;
+		document.body.style.cursor = 'initial'
+		document.addEventListener('mousemove', setPosition)
+	}
+	
+	function IDTimers(){
+		setTimeout (eyesOFF, 2000);
+		setTimeout (ballON, 2001);
+	}	
+	
+	function animate(){                                        //this function clears canvas, draws the balls, updates the animation and stops everything once it needs to stop.
+		raf = window.requestAnimationFrame(animate);
+		if (drawingID === true){
+			if (eyesID === true){
+				ctx.clearRect(0,0, canvas.width, canvas.height);
+				for (i = 0; i < 4; i++){
+					bullsEyes[i].draw(ctx);
+				}
+				document.body.style.cursor = 'none'
+			}
+			if (ballsID === true){
+				ctx.clearRect(0,0, canvas.width, canvas.height);
+				document.addEventListener('mousemove', setPosition);		// sends the mouse position to the drawing function when mouse moves
+	
+				balls[0].draw(ctx);	
+				balls[0].update();
+				drawOcclusion();				
+			}	
+			if (moveCounter === 3){
+				stopID = true;		
+			}
+			if (stopID === true){
+				drawLines();
+				drawMouse();
+				eyesID = false;
+				ballsID = false;
+				drawingID = false;
+				timesPlayed++;
+				stopTimestamp = new Date().getTime();
+				var totalTime = (stopTimestamp - startTimestamp);
+				
+				scoresPerTrial.push (totalTime, error, screenOff); //!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+				
+				setTimeout (startTrial, 5000);
+			}
+		}	
+	}//end animate
+	
+	function start(){
+		raf = window.requestAnimationFrame(animate);
+		drawingID = true;
+		eyesID = true;
+		moveCounter = 0;
+		stopID = false;
+		IDTimers();
+	}
+	start();
+}	
+
+function instructions(){
+	ctx.clearRect(0,0, canvas.width, canvas.height)
+	ctx.font = '36px serif';
+	ctx.fillStyle = 'white';
+	ctx.textAlign = "center";
+	ctx.fillText('Remember the targets locations', (canvas.width/2), (0.3*canvas.height));
+	ctx.fillText('Track the green ball that moves between the targets locations.', (canvas.width/2), (0.5*canvas.height));	
+	ctx.fillText('Click anywhere to start the task', (canvas.width/2), (0.7*canvas.height));
+	setTimeout (clickToStart, 2000);
+}
+
+function clickToStart(){
+	addEventListener('click', function() {
+		if (clickToStartID === 0){
+			startTrial()
+		}
+	}, false);
+}
+
+function displayStart(){						// this function displays the Trail # in the beggining of the trial.
+	if (timesPlayed < timesToPlay){
+		ctx.clearRect(0,0, canvas.width, canvas.height)
+		ctx.font = '36px serif';
+		ctx.fillStyle = 'red';
+		ctx.textAlign = "center";
+		ctx.fillText('Trial ' + (timesPlayed + 1), (canvas.width/2), (0.5*canvas.height));
+	}
+	if(timesPlayed === timesToPlay){
+		document.body.style.cursor = 'initial'
+		ctx.clearRect(0,0, canvas.width, canvas.height)
+		ctx.font = '36px serif';
+		ctx.fillStyle = 'red';
+		ctx.textAlign = "center";
+		ctx.fillText('Saving data, please wait. ', (canvas.width/2), (0.5*canvas.height));
+		document.body.style.cursor = 'initial'
+		endGame()
+	}
+}
+
+for (i = 0; i < timesToPlay; i++){
+	var occlusion = occlusions[i];
+	var side = sides[i];
+}
+
+function startTrial(){
+	displayStart();
+	clickToStartID = 1;
+	document.body.style.cursor = 'none'
+	setTimeout (nextTrial, 2000);
+}
+
+function nextTrial(){
+	if(timesPlayed < timesToPlay){
+		trials.push (new trial(timesPlayed, occlusions[timesPlayed], sides[timesPlayed]));
+	}
+	document.body.style.cursor = 'initial'
+}
+
+function endGame(){
+
+	location.replace("./mtt_finish.html")
+}
+
+instructions();
+
+setInterval (checkScreen, 1000);
+
+function checkScreen(){
+	var wh = window.innerHeight;
+	var ww = window.innerWidth;
+	if (screen.width != ww || screen.height != wh){
+		//console.log ('OUT OF FULLSCREEN');
+	}
+	//console.log ('checking screen');
+}
+
+
+	</script>
+	</body>

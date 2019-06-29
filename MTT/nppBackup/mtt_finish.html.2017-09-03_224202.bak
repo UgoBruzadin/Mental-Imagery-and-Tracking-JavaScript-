@@ -1,0 +1,31 @@
+<DOCTYPE html>
+<!-- this page was written by Ugo Bruzadin Nunes at SIU Carbondale -->
+<html>
+<head>
+	<title>Thank you</title>
+</head>			
+<body style="font-size: 20;">
+<div class="container" id="Box" style="border: solid; margin: auto; width: 90%;">
+
+<center><h1>Thank you</h1>
+
+<b> Thank you for completing this task. Please press Next to continue to the next task.
+
+<br> <br>
+
+
+<button id="Next" onclick="nextPage()">Next</button>
+<br>
+</center>
+</div>
+<script>
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+function nextPage(){
+	//location.replace("./mrttraining.html");
+}
+
+</script>
+</body>
+</html>
